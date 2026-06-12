@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ambient-video-processor
+    env: python
+    # FFmpeg is pre-installed on Render's build environment
+    buildCommand: apt-get install -y ffmpeg && pip install -r requirements.txt
+    # Single worker + threads — important: keeps SQLite job tracking in one process
+    # timeout 0 — disables gunicorn's request timeout for long streaming downloads
+    startCommand: gunicorn app:app --workers 1 --threads 4 --timeout 0 --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PEXELS_API_KEY
+        sync: false   # set manually in Render dashboard
+      - key: SERVICE_SECRET
+        sync: false   # set manually in Render dashboard — must match n8n workflow variable
